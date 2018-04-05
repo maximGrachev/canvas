@@ -1,13 +1,10 @@
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext("2d");
+
 var width = canvas.width;
 var height = canvas.height;
-
-var x1 = height-0.8*height;
-var y1 = width-0.8*width;
-
-var x2 = width-0.2*width;
-var y2 = height - 0.2*height;
+var ballsNumber =200;
+var maxSpeed = 5;
 
 function circle(x, y, radius, fillCircle, color) {
   ctx.beginPath();
@@ -22,37 +19,48 @@ function circle(x, y, radius, fillCircle, color) {
   }
 }
 
-function drawBee(x, y) {
-  ctx.lineWidth = 2;
-  circle(x, y, 8, true, 'Gold');
-  circle(x, y, 8, false, 'black');
-  circle(x - 5, y - 11, 5, false, 'white');
-  circle(x + 5, y - 11, 5, false, 'white');
-  circle(x - 2, y - 1, 2, false, 'black');
-  circle(x + 2, y - 1, 2, false, 'black');
+var Ball = function () {
+  this.radius = 5;
+  this.x = Math.random() * (width - 2 * this.radius);
+  this.y = Math.random() * (height - 2 * this.radius);
+  this.xSpeed = Math.random() * 2 * maxSpeed - maxSpeed;
+  this.ySpeed = Math.random() * 2 * maxSpeed - maxSpeed;
+  this.color = 'grey'
+};
+
+Ball.prototype.draw = function () {
+  circle(this.x, this.y, this.radius, true, this.color);
 }
 
-function updateCoordinate(coordinate) {
-  var offset = Math.random() * 10 - 5;
-  coordinate += offset;
-  if (coordinate > width) {
-    coordinate = width;
+Ball.prototype.move = function () {
+  this.x = this.x + this.xSpeed;
+  this.y = this.y + this.ySpeed;
+}
+
+Ball.prototype.checkCollision = function () {
+  if (this.x - this.radius < 0 || this.x + this.radius > width) {
+    this.xSpeed = -this.xSpeed;
   }
-  if (coordinate < 0) {
-    coordinate = 0;
+  if (this.y - this.radius < 0 || this.y + this.radius > height) {
+    this.ySpeed = -this.ySpeed;
   }
-  return coordinate;
-};
+}
+
+var ball = [];
+
+for (let i = 1; i <= ballsNumber; i++) {
+  ball[i] = new Ball();
+}
 
 setInterval(function () {
   ctx.clearRect(0, 0, width, height);
 
-  drawBee(x1, y1);
-  x1 = updateCoordinate(x1);
-  y1 = updateCoordinate(y1);
-  
-  drawBee(x2, y2);
-  x2 = updateCoordinate(x2);
-  y2 = updateCoordinate(y2);
+  for (let i = 1; i <= ballsNumber; i++) {
+    ball[i].draw();
+    ball[i].move();
+    ball[i].checkCollision();
+  }
+
+
   ctx.strokeRect(0, 0, width, height);
-}, 20)
+}, 30)
