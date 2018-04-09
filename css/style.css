@@ -1,6 +1,9 @@
 #main{
+    width: 100%;
+    height: 100%;
+    position: fixed;
     display: flex;
-    flex-direction: row;
-    align-items: flex;
-    justify-content: center;
+    align-items: center;
+    align-content: center; 
+    justify-content: center; 
 }
