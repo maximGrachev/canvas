@@ -2,7 +2,7 @@ var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext("2d");
 var width = canvas.width;
 var height = canvas.height;
-var blockSize = 10;
+var blockSize = 20;
 var widthInBlocks = width / blockSize;
 var heightInBlocks = height / blockSize;
 var score = 0;
@@ -13,25 +13,10 @@ var direction = {
   40: "down"
 };
 
-function circle(x, y, radius, fillCircle, color) {
-  ctx.beginPath();
-  ctx.fillStyle = color;
-  ctx.srtokeStyle = color;
-  ctx.arc(x, y, radius, 0, Math.PI * 2, true);
-  if (fillCircle) {
-    ctx.fill();
-  }
-  else {
-    ctx.stroke();
-  }
-}
-
 function drawBorder() {
-  ctx.fillStyle = "gray";
-  ctx.fillRect(0, 0, width, blockSize);
-  ctx.fillRect(width - blockSize, 0, blockSize, height);
-  ctx.fillRect(0, height - blockSize, width, blockSize);
-  ctx.fillRect(0, 0, blockSize, height);
+  ctx.lineWidth = '3'
+  ctx.strokeStyle = "gray";
+  ctx.strokeRect(0, 0, width, height);
 }
 
 function drawScore() {
@@ -39,12 +24,12 @@ function drawScore() {
   ctx.fillStyle = "black";
   ctx.textBaseline = "top";
   ctx.textAlign = "left";
-  ctx.fillText("Score: " + score, blockSize, blockSize);
+  ctx.fillText("Score: " + score, blockSize / 2, blockSize / 2);
 }
 
 function gameOver() {
   clearInterval(intervalId);
-  ctx.font = "60px Arial";
+  ctx.font = "20px Arial";
   ctx.fillStyle = "Black";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -60,143 +45,205 @@ Block.prototype.drawSquare = function (color) {
   let x = this.col * blockSize;
   let y = this.row * blockSize;
 
+  ctx.lineWidth = '1';
   ctx.fillStyle = color;
   ctx.fillRect(x, y, blockSize, blockSize);
-}
-
-Block.prototype.drawCircle = function (color) {
-  var centerX = this.col * blockSize + blockSize / 2;
-  var centerY = this.row * blockSize + blockSize / 2;
-
-  circle(centerX, centerY, blockSize / 2, true, color);
+  ctx.strokeStyle = 'black';
+  ctx.strokeRect(x, y, blockSize, blockSize);
 }
 
 Block.prototype.equal = function (otherBlock) {
   return this.col === otherBlock.col && this.row === otherBlock.row;
 }
 
-var Snake = function () {
-  this.segments = [
-    new Block(7, 5),
-    new Block(6, 5),
-    new Block(5, 5)
-  ];
-  this.direction = "right";
-  this.nextDirection = "right";
+var Figure = function (type, x, y, rotation) {
+  this.type = type;
+  this.x = x;
+  this.y = y;
+  this.rotation = rotation;
+
+  if (this.type === 'I' && (this.rotation === 0 || this.rotation === 2)) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x + 2, this.y),
+      new Block(this.x + 3, this.y)
+    ]
+  }
+  else if (this.type === 'I' && (this.rotation === 3 || this.rotation === 1)) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x, this.y + 1),
+      new Block(this.x, this.y + 2),
+      new Block(this.x, this.y + 3)
+    ]
+  }
+  else if (this.type === 'J' && this.rotation === 0) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x, this.y - 1),
+      new Block(this.x + 1, this.y),
+      new Block(this.x + 2, this.y)
+    ]
+  }
+  else if (this.type === 'J' && this.rotation === 1) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x, this.y + 1),
+      new Block(this.x, this.y + 2)
+    ]
+  }
+  else if (this.type === 'J' && this.rotation === 2) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 2, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x, this.y + 1)
+    ]
+  }
+  else if (this.type === 'J' && this.rotation === 3) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x, this.y - 1),
+      new Block(this.x, this.y - 2)
+    ]
+  }
+  else if (this.type === 'L' && this.rotation === 0) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 2, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x, this.y - 1)
+    ]
+  }
+  else if (this.type === 'L' && this.rotation === 1) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x, this.y - 1),
+      new Block(this.x, this.y - 2),
+      new Block(this.x + 1, this.y)
+    ]
+  }
+  else if (this.type === 'L' && this.rotation === 2) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x + 2, this.y),
+      new Block(this.x, this.y + 1)
+    ]
+  }
+  else if (this.type === 'L' && this.rotation === 3) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x, this.y + 1),
+      new Block(this.x, this.y + 2)
+    ]
+  }
+  else if (this.type === 'O' && (this.rotation === 0 || this.rotation === 1 || this.rotation === 2 || this.rotation === 3)) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x, this.y + 1),
+      new Block(this.x + 1, this.y + 1)
+    ]
+  }
+  else if (this.type === 'S' && (this.rotation === 0 || this.rotation === 2)) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x, this.y + 1),
+      new Block(this.x - 1, this.y + 1)
+    ]
+  }
+  else if (this.type === 'S' && (this.rotation === 1 || this.rotation === 3)) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x - 1, this.y - 1),
+      new Block(this.x, this.y + 1)
+    ]
+  }
+  else if (this.type === 'T' && this.rotation === 0) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x, this.y - 1)
+    ]
+  }
+  else if (this.type === 'T' && this.rotation === 1) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x, this.y - 1),
+      new Block(this.x, this.y + 1)
+    ]
+  }
+  else if (this.type === 'T' && this.rotation === 2) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x + 1, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x, this.y + 1)
+    ]
+  }
+  else if (this.type === 'T' && this.rotation === 3) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x, this.y - 1),
+      new Block(this.x, this.y + 1)
+    ]
+  }
+  else if (this.type === 'Z' && (this.rotation === 0 || this.rotation === 2)) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x, this.y + 1),
+      new Block(this.x + 1, this.y + 1)
+    ]
+  }
+  else if (this.type === 'Z' && (this.rotation === 1 || this.rotation === 3)) {
+    this.segments = [
+      new Block(this.x, this.y),
+      new Block(this.x - 1, this.y),
+      new Block(this.x-1, this.y + 1),
+      new Block(this.x, this.y - 1)
+    ]
+  }
 }
 
-Snake.prototype.drawSnake = function () {
+Figure.prototype.drawFigure = function () {
   for (let i = 0; i < this.segments.length; i++) {
-    this.segments[i].drawSquare('black');
+    this.segments[i].drawSquare('gray');
   }
 }
 
-Snake.prototype.move = function () {
-  let head = this.segments[0];
-  let newHead;
-
-  this.direction = this.nextDirection;
-
-  if (this.direction === "right") {
-    newHead = new Block(head.col + 1, head.row);
-  } else if (this.direction === "down") {
-    newHead = new Block(head.col, head.row + 1);
-  } else if (this.direction === "left") {
-    newHead = new Block(head.col - 1, head.row);
-  } else if (this.direction === "up") {
-    newHead = new Block(head.col, head.row - 1);
-  }
-
-  if (this.checkCollision(newHead)) {
-    gameOver();
-    return;
-  }
-
-  this.segments.unshift(newHead);
-
-  if (newHead.equal(apple.position)) {
-    score++;
-    apple.move();
-  } else {
-    this.segments.pop();
-  }
-}
-
-Snake.prototype.checkCollision = function (head) {
-  let leftCollision = (head.col === 0);
-  let rightCollision = (head.col === widthInBlocks - 1);
-  let topCollision = (head.row === 0);
-  let bottomCollision = (head.row === heightInBlocks - 1);
-
-  let wallCollision = leftCollision || rightCollision || topCollision || bottomCollision;
-
-  let selfCollision = false;
-
-  for (let i = 0; i < this.segments.length; i++) {
-    if (head.equal(this.segments[i])) {
-      selfCollision = true;
-    }
-  }
-
-  return wallCollision || selfCollision;
-}
-
-Snake.prototype.setDirection = function (newDirection) {
-  if (this.direction === "up" && newDirection === "down") {
-    return;
-  }
-  else if (this.direction === "down" && newDirection === "up") {
-    return;
-  }
-  else if (this.direction === "left" && newDirection === "right") {
-    return;
-  }
-  else if (this.direction === "right" && newDirection === "left") {
-    return;
-  }
-
-  this.nextDirection = newDirection;
-}
-
-var Apple = function () {
-  this.position = new Block(10, 10);
-}
-
-Apple.prototype.draw = function () {
-  this.position.drawCircle('LimeGreen');
-}
-
-Apple.prototype.move = function () {
-  let newCol = Math.floor(Math.random() * (widthInBlocks - 2)) + 1;
-  let newRow = Math.floor(Math.random() * (heightInBlocks - 2)) + 1;
-
-  this.position = new Block(newCol, newRow);
-
-  for (let i = 0; i < snake.segments.length; i++) {
-    if (this.position.equal(snake.segments[i])) {
-      return this.move();
-    }
-  }
-}
-
-var snake = new Snake();
-var apple = new Apple();
+var fig = new Figure('T', 3, 3, 0);
 
 $("body").keydown(function (event) {
-  let newDirection = direction[event.keyCode];
+  let key = direction[event.keyCode];
+ 
 
-  if (newDirection !== undefined) {
-    snake.setDirection(newDirection);
+  if (key !== undefined) {
+    if (key === 'down') {
+      console.log('click');
+      fig.y = fig.y + 1;
+    }
   }
 });
+
+
 
 var intervalId = setInterval(function () {
   ctx.clearRect(0, 0, width, height);
 
+
+  fig.drawFigure();
   drawScore();
-  snake.move();
-  snake.drawSnake();
-  apple.draw();
   drawBorder();
 
 }, 100)
