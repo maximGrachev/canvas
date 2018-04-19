@@ -7,6 +7,7 @@ var widthInBlocks = width / blockSize;
 var heightInBlocks = height / blockSize;
 var score = 0;
 var allFigures = [];
+var num = 0;
 var action = {
   37: "left",
   38: "up",
@@ -54,7 +55,7 @@ Block.prototype.drawSquare = function (color) {
 }
 
 Block.prototype.equal = function (otherBlock) {
-  return this.col === otherBlock.col && this.row === otherBlock.row;
+  return this.col === otherBlock.col && this.row === otherBlock.row && this.col === heightInBlocks && this.raw === widthInBlocks && this.raw === 0;
 }
 
 var Figure = function (type, x, y, rotation) {
@@ -218,26 +219,85 @@ var Figure = function (type, x, y, rotation) {
 
 }
 
+Figure.prototype.checkCollisionLeft = function () {
+
+  let wallCollision;
+
+  for (let i = 0; i < this.segments.length; i++) {
+    if (this.segments[i].col === 0) {
+      wallCollision = true;
+    }
+  }
+
+  return wallCollision;
+}
+
+Figure.prototype.checkCollisionRight = function () {
+
+  let wallCollision;
+
+  for (let i = 0; i < this.segments.length; i++) {
+    if (this.segments[i].col === widthInBlocks - 1) {
+      wallCollision = true;
+    }
+  }
+
+  return wallCollision;
+}
+
+Figure.prototype.checkCollisionUp = function () {
+
+  let wallCollision;
+
+  for (let i = 0; i < this.segments.length; i++) {
+    if (this.segments[i].row === heightInBlocks) {
+      wallCollision = true;
+    }
+  }
+
+  return wallCollision;
+}
+
+Figure.prototype.checkCollisionDown = function () {
+
+  let wallCollision;
+
+  for (let i = 0; i < this.segments.length; i++) {
+    if (this.segments[i].row === heightInBlocks - 1) {
+      wallCollision = true;
+    }
+  }
+
+  return wallCollision;
+}
+
 Figure.prototype.moveFigure = function (direction) {
-  
-  if (direction === "right"){
+
+  if (direction === "right" && !this.checkCollisionRight() && !this.checkCollisionDown()) {
     this.x = this.x + 1;
   }
-  else if (direction === "left"){
+
+  else if (direction === "left" && !this.checkCollisionLeft() && !this.checkCollisionDown()) {
     this.x = this.x - 1;
   }
-  else if (direction === "down"){
+
+  else if (direction === "up" && !this.checkCollisionDown()) {
+    if (this.rotation < 3) {
+      this.rotation++;
+    }
+    else {
+      this.rotation = 0;
+    }
+  }
+
+  else if (direction === "fall" && !this.checkCollisionDown()) {
+    this.y = this.y + 1;
+  }
+
+  else if (direction === "down" && !this.checkCollisionDown()) {
     this.y = this.y + 2;
   }
-  else if (direction === "up"){
-   if (this.rotation < 3){
-     this.rotation++;
-   }
-   else{
-    this.rotation = 0;
-   }
-  }
-  
+
   if (this.type === 'I' && (this.rotation === 0 || this.rotation === 2)) {
     this.segments = [
       new Block(this.x, this.y),
@@ -392,29 +452,40 @@ Figure.prototype.moveFigure = function (direction) {
   }
 }
 
-  Figure.prototype.drawFigure = function () {
-    for (let i = 0; i < this.segments.length; i++) {
-      this.segments[i].drawSquare('gray');
-    }
+Figure.prototype.drawFigure = function () {
+  for (let i = 0; i < this.segments.length; i++) {
+    this.segments[i].drawSquare('gray');
+  }
+}
+
+allFigures[0] = new Figure('T', 5, 2, 0);
+allFigures[1] = new Figure('Z', 3, 4, 0);
+
+function g() {
+  allFigures[2] = new Figure('I', 5, 2, 1);
+  num = 2;
+}
+
+setTimeout('g()', 4000)
+
+$("body").keydown(function (event) {
+  let newAction = action[event.keyCode];
+
+  if (newAction !== undefined) {
+    allFigures[num].moveFigure(newAction);
   }
 
-  allFigures[0] = new Figure('T', 5, 2, 1);
+});
 
-  $("body").keydown(function (event) {
-    let newAction = action[event.keyCode];
+var intervalId = setInterval(function () {
+  ctx.clearRect(0, 0, width, height);
 
-    if (newAction !== undefined) {
-      allFigures[0].moveFigure(newAction);
-    }
+  for (let r = 0; r < allFigures.length; r++) {
+    allFigures[r].drawFigure();
+    allFigures[r].moveFigure('fall');
+  }
 
-  });
+  drawScore();
+  drawBorder();
 
-  var intervalId = setInterval(function () {
-    ctx.clearRect(0, 0, width, height);
-
-    allFigures[0].drawFigure();
-    allFigures[0].moveFigure('down');
-    drawScore();
-    drawBorder();
-
-  }, 300)
+}, 250)
