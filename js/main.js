@@ -8,6 +8,7 @@ var heightInBlocks = height / blockSize;
 var score = 0;
 var allFigures = [];
 var num = 0;
+var timeToCreate = false;
 var action = {
   37: "left",
   38: "up",
@@ -51,11 +52,6 @@ function randomFigure() {
   return figureType;
 }
 
-
-function createFigure() {
-  allFigures[num] = new Figure(randomFigure(), 3, 3, 0);
-  num++;
-}
 
 function drawBorder() {
   ctx.lineWidth = '3'
@@ -500,17 +496,22 @@ Figure.prototype.drawFigure = function () {
   }
 }
 
-allFigures[num] = new Figure('T', 4, 3, 0);
-num++;
+function createFigure() {
+  allFigures[num] = new Figure(randomFigure(), 4, 3, randomInteger(0, 3));
 
-$("body").keydown(function (event) {
-  let newAction = action[event.keyCode];
+  $("body").keydown(function (event) {
+    let newAction = action[event.keyCode];
+    
+    if (newAction !== undefined) {
+      console.log(newAction);
+      allFigures[num - 1].moveFigure(newAction);
+    }
+  });
 
-  if (newAction !== undefined) {
-    allFigures[num].moveFigure(newAction);
-  }
+  num++;
+}
 
-});
+createFigure();
 
 var intervalId = setInterval(function () {
   ctx.clearRect(0, 0, width, height);
@@ -520,7 +521,12 @@ var intervalId = setInterval(function () {
     allFigures[r].moveFigure('fall');
   }
 
+  if (timeToCreate === true) {
+    createFigure();
+    timeToCreate = false;
+  }
+
   drawScore();
   drawBorder();
 
-}, 250)
+}, 300)
