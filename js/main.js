@@ -15,6 +15,48 @@ var action = {
   40: "down"
 };
 
+function randomInteger(min, max) {
+  var rand = min + Math.random() * (max + 1 - min);
+  rand = Math.floor(rand);
+  return rand;
+}
+
+function randomFigure() {
+
+  let randomNum = Math.floor(Math.random() * 7);
+  let figureType;
+
+  if (randomNum === 0) {
+    figureType = 'I';
+  }
+  else if (randomNum === 1) {
+    figureType = 'J'
+  }
+  else if (randomNum === 2) {
+    figureType = 'L'
+  }
+  else if (randomNum === 3) {
+    figureType = 'O'
+  }
+  else if (randomNum === 4) {
+    figureType = 'S'
+  }
+  else if (randomNum === 5) {
+    figureType = 'T'
+  }
+  else if (randomNum === 6) {
+    figureType = 'Z'
+  }
+
+  return figureType;
+}
+
+
+function createFigure() {
+  allFigures[num] = new Figure(randomFigure(), 3, 3, 0);
+  num++;
+}
+
 function drawBorder() {
   ctx.lineWidth = '3'
   ctx.strokeStyle = "gray";
@@ -295,7 +337,7 @@ Figure.prototype.moveFigure = function (direction) {
   }
 
   else if (direction === "down" && !this.checkCollisionDown()) {
-    this.y = this.y + 2;
+    this.y = this.y + 1;
   }
 
   if (this.type === 'I' && (this.rotation === 0 || this.rotation === 2)) {
@@ -454,19 +496,12 @@ Figure.prototype.moveFigure = function (direction) {
 
 Figure.prototype.drawFigure = function () {
   for (let i = 0; i < this.segments.length; i++) {
-    this.segments[i].drawSquare('gray');
+    this.segments[i].drawSquare('grey');
   }
 }
 
-allFigures[0] = new Figure('T', 5, 2, 0);
-allFigures[1] = new Figure('Z', 3, 4, 0);
-
-function g() {
-  allFigures[2] = new Figure('I', 5, 2, 1);
-  num = 2;
-}
-
-setTimeout('g()', 4000)
+allFigures[num] = new Figure('T', 4, 3, 0);
+num++;
 
 $("body").keydown(function (event) {
   let newAction = action[event.keyCode];
