@@ -8,7 +8,7 @@ var heightInBlocks = height / blockSize;
 var score = 0;
 var allFigures = [];
 var num = 0;
-var timeToCreate = false;
+var figureStoped = false;
 var action = {
   37: "left",
   38: "up",
@@ -24,7 +24,7 @@ function randomInteger(min, max) {
 
 function randomFigure() {
 
-  let randomNum = Math.floor(Math.random() * 7);
+  let randomNum = randomInteger(0, 6);
   let figureType;
 
   if (randomNum === 0) {
@@ -91,10 +91,36 @@ Block.prototype.drawSquare = function (color) {
   ctx.strokeStyle = 'black';
   ctx.strokeRect(x, y, blockSize, blockSize);
 }
-
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 Block.prototype.equal = function (otherBlock) {
-  return this.col === otherBlock.col && this.row === otherBlock.row && this.col === heightInBlocks && this.raw === widthInBlocks && this.raw === 0;
+  return (this.col === otherBlock.col - 1 || this.col === otherBlock.col + 1) && (this.row === otherBlock.row + 1 || this.row === otherBlock.row - 1);
 }
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 var Figure = function (type, x, y, rotation) {
   this.type = type;
@@ -285,10 +311,10 @@ Figure.prototype.checkCollisionRight = function () {
 
 Figure.prototype.checkCollisionUp = function () {
 
-  let wallCollision;
+  let wallCollision = false;
 
   for (let i = 0; i < this.segments.length; i++) {
-    if (this.segments[i].row === heightInBlocks) {
+    if (this.segments[i].row === 0) {
       wallCollision = true;
     }
   }
@@ -307,6 +333,23 @@ Figure.prototype.checkCollisionDown = function () {
   }
 
   return wallCollision;
+}
+
+Figure.prototype.checkCollision = function () {
+
+  var Collision;
+
+  for (let i = 0; i < this.segments.length; i++) {
+    for (let j = 0; j < allFigures.length - 1; j++) {
+      for (let k = 0; k < allFigures[j].segments.length; k++) {
+        if (this.segments[i].equal(allFigures[j].segments[k])) {
+          Collision = true;
+        }
+      }
+    }
+  }
+
+  return Collision;
 }
 
 Figure.prototype.moveFigure = function (direction) {
@@ -328,11 +371,11 @@ Figure.prototype.moveFigure = function (direction) {
     }
   }
 
-  else if (direction === "fall" && !this.checkCollisionDown()) {
+  else if (direction === "fall" && !this.checkCollisionDown() && !this.checkCollision()) {
     this.y = this.y + 1;
   }
 
-  else if (direction === "down" && !this.checkCollisionDown()) {
+  else if (direction === "down" && !this.checkCollisionDown() && !this.checkCollision()) {
     this.y = this.y + 1;
   }
 
@@ -491,23 +534,48 @@ Figure.prototype.moveFigure = function (direction) {
 }
 
 Figure.prototype.drawFigure = function () {
-  for (let i = 0; i < this.segments.length; i++) {
-    this.segments[i].drawSquare('grey');
+
+  if (this.type === "I"){
+    for (let i = 0; i < this.segments.length; i++) {
+      this.segments[i].drawSquare('thistle');
+    }
   }
+  else if(this.type === "J"){
+    for (let i = 0; i < this.segments.length; i++) {
+      this.segments[i].drawSquare('Teal');
+    }
+  }
+  else if(this.type === "L"){
+    for (let i = 0; i < this.segments.length; i++) {
+      this.segments[i].drawSquare('grey');
+    }
+  }
+  else if(this.type === "O"){
+    for (let i = 0; i < this.segments.length; i++) {
+      this.segments[i].drawSquare('pink');
+    }
+  }
+  else if(this.type === "S"){
+    for (let i = 0; i < this.segments.length; i++) {
+      this.segments[i].drawSquare('olive');
+    }
+  }
+  else if(this.type === "T"){
+    for (let i = 0; i < this.segments.length; i++) {
+      this.segments[i].drawSquare('BurlyWood');
+    }
+  }
+  else if(this.type === "Z"){
+    for (let i = 0; i < this.segments.length; i++) {
+      this.segments[i].drawSquare('Tomato');
+    }
+  }
+
+  
 }
 
 function createFigure() {
-  allFigures[num] = new Figure(randomFigure(), 4, 3, randomInteger(0, 3));
-
-  $("body").keydown(function (event) {
-    let newAction = action[event.keyCode];
-    
-    if (newAction !== undefined) {
-      console.log(newAction);
-      allFigures[num - 1].moveFigure(newAction);
-    }
-  });
-
+  allFigures[num] = new Figure(randomFigure(), 4, -3, randomInteger(0, 3));
   num++;
 }
 
@@ -521,12 +589,24 @@ var intervalId = setInterval(function () {
     allFigures[r].moveFigure('fall');
   }
 
-  if (timeToCreate === true) {
+  if (figureStoped === true) {
     createFigure();
-    timeToCreate = false;
+    figureStoped = false;
   }
 
   drawScore();
   drawBorder();
 
-}, 300)
+}, 25)
+
+
+/*
+$("body").keydown(function (event) {
+  let newAction = action[event.keyCode];
+  
+  if (newAction !== undefined) {
+    console.log(newAction);
+    allFigures[num - 1].moveFigure(newAction);
+  }
+});
+*/
